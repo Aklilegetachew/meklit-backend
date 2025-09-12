@@ -7,7 +7,7 @@ export interface Staff {
   lastName: string
   role: string
   centerId: string
-  timiestamp?: Date
+  timestamp?: Date
 }
 
 export const StaffSchema = z.object({

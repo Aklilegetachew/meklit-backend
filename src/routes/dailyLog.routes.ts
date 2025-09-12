@@ -4,9 +4,9 @@ import {
   createDailyLog,
 } from "../controllers/dailyLog.controller"
 
-const router = Router()
+const logrouter = Router()
 
-router.get("/", getDailyLogs)
-router.post("/", createDailyLog)
+logrouter.get("/", getDailyLogs)
+logrouter.post("/", createDailyLog)
 
-export default router
+export default logrouter

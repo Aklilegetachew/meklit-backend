@@ -1,20 +1,20 @@
 import { NextFunction, Request, Response } from "express"
-import * as staffServices from "../services/staff.service"
+import * as CenterService from "../services/center.service"
 
-export const getStaffMembers = async (
+export const getCenters = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const logs = await staffServices.getAllStaffmembers()
+    const logs = await CenterService.getAllCenters()
     res.json(logs)
   } catch (err) {
     next(err)
   }
 }
 
-export const createStaffMember = async (
+export const createCenters = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,26 +25,25 @@ export const createStaffMember = async (
   }
 
   try {
-    const logs = await staffServices.createStaffmember(body)
+    const logs = await CenterService.createCenter(body)
     res.json(logs)
   } catch (err) {
     next(err)
   }
 }
 
-export const getStaffById = async (
+export const getCenterById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const id = req.params.id
-  if (!id) {
-    res.json({ msg: "missing id parameter" })
+  if (!req.params.id) {
+    res.json({ msg: "parameter id is missing" })
   }
-
   try {
-    const response = await staffServices.getStaffById(id)
-    res.json({ msg: "successfull", data: response })
+    const id = req.params.id
+    const response = await CenterService.getCenterById(id)
+    res.json({ msg: "succssful", data: response })
   } catch (error) {
     next(error)
   }
