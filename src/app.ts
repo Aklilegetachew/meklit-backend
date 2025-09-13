@@ -10,6 +10,7 @@ import staffmanagmentRoutes from "./routes/staff.routes"
 import centerRoutes from "./routes/center.routes"
 import childRoutes from "./routes/child.routes"
 import classRoutes from "./routes/class.routes"
+import healthReportRoute from "./routes/health.routes"
 
 dotenv.config()
 
@@ -25,6 +26,7 @@ app.use("/api/class", classRoutes)
 app.use("/api/staff", staffmanagmentRoutes)
 app.use("/api/child", childRoutes)
 app.use("/api/daily-logs", dailyLogRoutes)
+app.use("/api/healthRecords", healthReportRoute)
 
 app.use(errorHandler)
 

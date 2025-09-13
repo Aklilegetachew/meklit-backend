@@ -17,7 +17,9 @@ export const ChildSchema = z.object({
   classId: z.string(),
   centerId: z.string(),
   staffId: z.string().optional(),
-  birthDate: z.date(),
+  birthDate: z.preprocess((arg) => {
+    if (typeof arg === "string" || arg instanceof Date) return new Date(arg)
+  }, z.date()),
 })
 
 export const calculateAge = (birthDate: Date): number => {
