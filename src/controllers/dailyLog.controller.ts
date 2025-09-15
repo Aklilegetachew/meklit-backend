@@ -11,6 +11,7 @@ import {
   getMoodTrends as getMoodTrendsService,
   getLogsOverTime as getLogsOverTimeService,
   getLogsByStaff as getLogsByStaffService,
+  getRecentLogsService,
 } from "../services/dailyLog.service"
 
 export const createDailyLogController = async (req: Request, res: Response) => {
@@ -87,6 +88,7 @@ export const getActivityCountByTypeController = async (
 ) => {
   try {
     const filters = parseFilters(req)
+    console.log("here ")
     const data = await getActivityCountByTypeService(filters)
     res.json(data)
   } catch (err: any) {
@@ -94,8 +96,8 @@ export const getActivityCountByTypeController = async (
   }
 }
 
-// 2️⃣ Logs by Child
-export const getLogsByChild = async (req: Request, res: Response) => {
+
+export const getLogsByChildController = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
     const data = await getLogsByChildService(filters)
@@ -105,8 +107,8 @@ export const getLogsByChild = async (req: Request, res: Response) => {
   }
 }
 
-// 3️⃣ Logs by Staff
-export const getLogsByStaff = async (req: Request, res: Response) => {
+
+export const getLogsByStaffController = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
     const data = await getLogsByStaffService(filters)
@@ -116,8 +118,11 @@ export const getLogsByStaff = async (req: Request, res: Response) => {
   }
 }
 
-// 4️⃣ Logs by Center
-export const getLogsByCenter = async (req: Request, res: Response) => {
+
+export const getLogsByCenterController = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const filters = parseFilters(req)
     const data = await getLogsByCenterService(filters)
@@ -127,8 +132,11 @@ export const getLogsByCenter = async (req: Request, res: Response) => {
   }
 }
 
-// 5️⃣ Logs over Time
-export const getLogsOverTime = async (req: Request, res: Response) => {
+
+export const getLogsOverTimeController = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const filters = parseFilters(req)
     const data = await getLogsOverTimeService(filters)
@@ -138,8 +146,7 @@ export const getLogsOverTime = async (req: Request, res: Response) => {
   }
 }
 
-// 6️⃣ Mood Trends
-export const getMoodTrends = async (req: Request, res: Response) => {
+export const getMoodTrendsController = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
     const data = await getMoodTrendsService(filters)
@@ -149,12 +156,26 @@ export const getMoodTrends = async (req: Request, res: Response) => {
   }
 }
 
-// 7️⃣ Diaper / Nap Patterns
-export const getDiaperNapPatterns = async (req: Request, res: Response) => {
+
+export const getDiaperNapPatternsController = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const filters = parseFilters(req)
     const data = await getDiaperNapPatternsService(filters)
     res.json(data)
+  } catch (err: any) {
+    res.status(err.statusCode || 500).json({ error: err.message })
+  }
+}
+
+
+
+export const getRecentLogsController = async (req: Request, res: Response) => {
+  try {
+    const logs = await getRecentLogsService()
+    res.json(logs)
   } catch (err: any) {
     res.status(err.statusCode || 500).json({ error: err.message })
   }

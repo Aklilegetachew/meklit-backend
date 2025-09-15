@@ -1,11 +1,11 @@
 import z from "zod"
-import { ServiceError } from "../schemas/class"
+import { ClassSchema, ServiceError } from "../schemas/class"
 import {
   HealthRecordEntry,
   HealthRecordEntrySchema,
 } from "../schemas/healthRecordEntry"
 import { db } from "../config/firebase"
-import { Child } from "../schemas/child"
+import { Child, ChildSchema } from "../schemas/child"
 
 interface Filters {
   childId?: string
@@ -26,7 +26,7 @@ const getDocById = async (collection: string, id: string) => {
   }
 }
 
-// Create a health record entry
+
 export const createHealthEntry = async (
   entry: Omit<HealthRecordEntry, "id">
 ) => {
@@ -35,16 +35,16 @@ export const createHealthEntry = async (
 
     const docRef = await db.collection("healthRecords").add(validated)
 
-    // Fetch related info to return
+ 
     const [child, staff, center] = await Promise.all([
       getDocById("children", validated.childId),
       getDocById("staffMembers", validated.recordedByUserId),
       getDocById("center", validated.centerId),
     ])
-    // If you need to assert the type of child:
+
     const childTyped = child as Child
 
-    // Optionally include class info if child has classId
+  
     let classInfo = null
     if (childTyped?.classId) {
       classInfo = await getDocById("classes", childTyped.classId)
@@ -66,7 +66,7 @@ export const createHealthEntry = async (
   }
 }
 
-// Fetch all health records with related data
+
 export const getAllHealthRecords = async () => {
   try {
     const snapshot = await db.collection("healthRecords").get()
@@ -102,7 +102,7 @@ export const getAllHealthRecords = async () => {
   }
 }
 
-// Fetch by childId
+
 export const getHealthRecordsByChildId = async (childId: string) => {
   try {
     const snapshot = await db
@@ -143,7 +143,7 @@ export const getHealthRecordsByChildId = async (childId: string) => {
   }
 }
 
-// Fetch by staffId
+
 export const getHealthRecordsByStaffId = async (staffId: string) => {
   try {
     const snapshot = await db
@@ -184,7 +184,7 @@ export const getHealthRecordsByStaffId = async (staffId: string) => {
   }
 }
 
-// Fetch by centerId
+
 export const getHealthRecordsByCenterId = async (centerId: string) => {
   try {
     const snapshot = await db
@@ -225,7 +225,7 @@ export const getHealthRecordsByCenterId = async (centerId: string) => {
   }
 }
 
-// 🔹 Helper to fetch filtered records
+
 const fetchHealthRecords = async (filters: Filters) => {
   try {
     let query: FirebaseFirestore.Query = db.collection("healthRecords")
@@ -244,7 +244,7 @@ const fetchHealthRecords = async (filters: Filters) => {
       ...doc.data(),
     }))
 
-    // Date filtering
+   
     if (filters.startDate || filters.endDate) {
       data = data.filter((record: any) => {
         const ts = (record.timestamp as any)?._seconds
@@ -264,7 +264,7 @@ const fetchHealthRecords = async (filters: Filters) => {
   }
 }
 
-/** 1️⃣ Incidents vs Medication Count (Pie / Donut) */
+
 export const getIncidentVsMedication = async (filters: Filters) => {
   const records = await fetchHealthRecords(filters)
   const incidentCount = records.filter((r: any) => r.type === "Incident").length
@@ -275,20 +275,27 @@ export const getIncidentVsMedication = async (filters: Filters) => {
   return { incidentCount, medicationCount }
 }
 
-/** 2️⃣ Incidents by Severity (Stacked Bar) */
+
 export const getIncidentsBySeverity = async (filters: Filters) => {
-  const records = await fetchHealthRecords({ ...filters, type: "Incident" })
+
+  const records = await fetchHealthRecords({
+    type: "Incident",
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+  })
+
+
   const grouped: Record<string, number> = {}
 
-  records.forEach((r: any) => {
-    const severity = r.severity || "Unknown"
+  records.forEach((record: any) => {
+    const severity = record.severity || "Unknown"
     grouped[severity] = (grouped[severity] || 0) + 1
   })
 
   return grouped
 }
 
-/** 3️⃣ Incidents by Child (Bar / Line) */
+
 export const getIncidentsByChild = async (filters: Filters) => {
   const records = await fetchHealthRecords({ ...filters, type: "Incident" })
   const grouped: Record<string, number> = {}
@@ -300,7 +307,7 @@ export const getIncidentsByChild = async (filters: Filters) => {
   return grouped
 }
 
-/** 4️⃣ Medication by Child (Bar) */
+
 export const getMedicationByChild = async (filters: Filters) => {
   const records = await fetchHealthRecords({
     ...filters,
@@ -315,7 +322,7 @@ export const getMedicationByChild = async (filters: Filters) => {
   return grouped
 }
 
-/** 5️⃣ Records by Staff (Bar / Heatmap) */
+
 export const getRecordsByStaff = async (filters: Filters) => {
   const records = await fetchHealthRecords(filters)
   const grouped: Record<string, number> = {}
@@ -327,7 +334,7 @@ export const getRecordsByStaff = async (filters: Filters) => {
   return grouped
 }
 
-/** 6️⃣ Records by Center (Bar / Line) */
+
 export const getRecordsByCenter = async (filters: Filters) => {
   const records = await fetchHealthRecords(filters)
   const grouped: Record<string, number> = {}
@@ -339,7 +346,7 @@ export const getRecordsByCenter = async (filters: Filters) => {
   return grouped
 }
 
-/** 7️⃣ Records over Time (Line / Area) */
+
 export const getRecordsOverTime = async (filters: Filters) => {
   const records = await fetchHealthRecords(filters)
   const grouped: Record<string, number> = {}
@@ -356,7 +363,7 @@ export const getRecordsOverTime = async (filters: Filters) => {
   return grouped
 }
 
-/** 8️⃣ Incident Type Breakdown (Treemap / Pie) */
+
 export const getIncidentTypeBreakdown = async (filters: Filters) => {
   const records = await fetchHealthRecords({ ...filters, type: "Incident" })
   const grouped: Record<string, number> = {}
@@ -369,7 +376,7 @@ export const getIncidentTypeBreakdown = async (filters: Filters) => {
   return grouped
 }
 
-/** 9️⃣ Action Taken Summary (Pie / Bar) */
+
 export const getActionTakenSummary = async (filters: Filters) => {
   const records = await fetchHealthRecords(filters)
   const grouped: Record<string, number> = {}
@@ -380,4 +387,101 @@ export const getActionTakenSummary = async (filters: Filters) => {
   })
 
   return grouped
+}
+
+export const getIncidentsByClass = async (filters: Filters) => {
+
+  const records = await fetchHealthRecords({ ...filters, type: "Incident" })
+
+
+  const countsByClassId: Record<string, number> = {}
+  records.forEach((r: any) => {
+    const classId = r.classId
+    if (!countsByClassId[classId]) countsByClassId[classId] = 0
+    countsByClassId[classId] += 1
+  })
+
+ 
+  const classIds = Object.keys(countsByClassId)
+  if (classIds.length === 0) return {}
+
+  const classesSnapshot = await db
+    .collection("classes")
+    .where("__name__", "in", classIds) 
+    .get()
+
+  const result: Record<string, number> = {}
+  classesSnapshot.forEach((doc) => {
+    const classData = doc.data() as any 
+    const className = classData.name || doc.id
+    result[className] = countsByClassId[doc.id] || 0
+  })
+
+  return result
+}
+
+export const getRecentHealthRecordsService = async () => {
+
+  const snapshot = await db
+    .collection("healthRecords")
+    .orderBy("timestamp", "desc")
+    .limit(5)
+    .get()
+
+  if (snapshot.empty) return []
+
+  const records = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
+
+
+  const childIds = records.map((r: any) => r.childId)
+  const classIds = records.map((r: any) => r.classId)
+
+
+  const childrenSnapshot = await db
+    .collection("children")
+    .where("__name__", "in", childIds)
+    .get()
+
+  const childrenMap: Record<string, any> = {}
+  childrenSnapshot.forEach((doc) => {
+    const data = doc.data()
+    childrenMap[doc.id] = {
+      firstName: data.firstName || "",
+      lastName: data.lastName || "",
+      classId: data.classId || "",
+    }
+  })
+
+
+  const classesSnapshot = await db
+    .collection("classes")
+    .where("__name__", "in", classIds)
+    .get()
+
+  const classesMap: Record<string, any> = {}
+  classesSnapshot.forEach((doc) => {
+    const parsed = ClassSchema.safeParse(doc.data())
+    if (parsed.success) classesMap[doc.id] = parsed.data
+  })
+
+  console.log(childrenMap)
+
+ 
+  const result = records.map((r: any) => {
+    const child = childrenMap[r.childId]
+    const cls = classesMap[r.classId]
+
+    return {
+      childName: child ? `${child.firstName} ${child.lastName}` : "Unknown",
+      className: cls ? cls.name : "Unknown",
+      type: r.type,
+      details: r.details,
+      timestamp: r.timestamp,
+    }
+  })
+
+  return result
 }

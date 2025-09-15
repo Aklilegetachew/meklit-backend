@@ -1,32 +1,34 @@
 import { Router } from "express"
 import {
   createDailyLogController,
-  getDailyLogsController,
-  getDailyLogByIdController,
+  getActivityCountByTypeController,
   getallLogData,
-  getDiaperNapPatterns,
-  getLogsByCenter,
-  getLogsByChild,
-  getLogsByStaff,
-  getLogsOverTime,
-  getMoodTrends,
+  getDailyLogByIdController,
+  getDailyLogsController,
+  getDiaperNapPatternsController,
+  getLogsByCenterController,
+  getLogsByChildController,
+  getLogsByStaffController,
+  getLogsOverTimeController,
+  getMoodTrendsController,
+  getRecentLogsController,
 } from "../controllers/dailyLog.controller"
-import { getActivityCountByType } from "../services/dailyLog.service"
 
 const logrouter = Router()
 
 logrouter.post("/", createDailyLogController)
 logrouter.get("/", getDailyLogsController)
 logrouter.get("/all", getallLogData)
-logrouter.get("/:id", getDailyLogByIdController)
 
 // for anyltics purpose
-logrouter.get("/type", getActivityCountByType)
-logrouter.get("/by-child", getLogsByChild)
-logrouter.get("/by-staff", getLogsByStaff)
-logrouter.get("/by-center", getLogsByCenter)
-logrouter.get("/over-time", getLogsOverTime)
-logrouter.get("/mood-trends", getMoodTrends)
-logrouter.get("/diaper-nap-patterns", getDiaperNapPatterns)
+logrouter.get("/type", getActivityCountByTypeController)
+logrouter.get("/by-child", getLogsByChildController)
+logrouter.get("/by-staff", getLogsByStaffController)
+logrouter.get("/by-center", getLogsByCenterController)
+logrouter.get("/over-time", getLogsOverTimeController)
+logrouter.get("/mood-trends", getMoodTrendsController)
+logrouter.get("/diaper-nap-patterns", getDiaperNapPatternsController)
+logrouter.get("/recent", getRecentLogsController)
 
+logrouter.get("/:id", getDailyLogByIdController)
 export default logrouter

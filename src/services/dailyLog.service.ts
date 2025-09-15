@@ -22,7 +22,7 @@ class ServiceError extends Error {
   }
 }
 
-// 1. Create a daily log entry
+
 export const createDailyLog = async (
   entry: Omit<DailyLogEntry, "id">
 ): Promise<DailyLogEntry> => {
@@ -40,7 +40,7 @@ export const createDailyLog = async (
   }
 }
 
-// 2. Get all logs (optionally filter)
+
 export const getDailyLogs = async (filters?: {
   childId?: string
   staffId?: string
@@ -79,7 +79,6 @@ export const getDailyLogs = async (filters?: {
   }
 }
 
-// 3. Get a single log entry with populated references (child, staff, center)
 export const getDailyLogById = async (logId: string): Promise<any | null> => {
   try {
     const docRef = await db.collection("dailyLogs").doc(logId).get()
@@ -109,7 +108,6 @@ export const getDailyLogById = async (logId: string): Promise<any | null> => {
 
 export const getDailyLogsWithDetails = async (childId?: string) => {
   try {
-    // Fetch logs filtered by childId if provided
     let queryRef: FirebaseFirestore.Query = db.collection("dailyLogs")
     if (childId) {
       queryRef = queryRef.where("childId", "==", childId)
@@ -163,7 +161,7 @@ const applyFilters = (
   return query
 }
 
-// 1️⃣ Activity Count by Type
+
 export const getActivityCountByType = async (
   filters: AnalyticsFilters = {}
 ) => {
@@ -172,6 +170,7 @@ export const getActivityCountByType = async (
     query = applyFilters(query, filters)
 
     const snapshot = await query.get()
+    console.log("dayily log", snapshot)
     const counts: Record<string, number> = {}
 
     snapshot.docs.forEach((doc) => {
@@ -186,7 +185,6 @@ export const getActivityCountByType = async (
   }
 }
 
-// 2️⃣ Logs by Child
 export const getLogsByChild = async (filters: AnalyticsFilters = {}) => {
   try {
     let query: FirebaseFirestore.Query = db.collection("dailyLogs")
@@ -195,19 +193,27 @@ export const getLogsByChild = async (filters: AnalyticsFilters = {}) => {
     const snapshot = await query.get()
     const counts: Record<string, number> = {}
 
-    snapshot.docs.forEach((doc) => {
-      const childName =
-        doc.data().child?.firstName + " " + doc.data().child?.lastName
-      if (childName) counts[childName] = (counts[childName] || 0) + 1
-    })
+    for (const doc of snapshot.docs) {
+      const log = doc.data()
 
-    return counts // e.g., { "Sophia Davis": 5, "Ethan Smith": 3 }
+    
+      const childRef = await db.collection("children").doc(log.childId).get()
+      const childData = childRef.exists ? childRef.data() : null
+
+      const childName = childData
+        ? `${childData.firstName} ${childData.lastName}`
+        : "Unknown"
+
+      counts[childName] = (counts[childName] || 0) + 1
+    }
+
+    return counts
   } catch (err: any) {
     throw new ServiceError("Failed to fetch logs by child", 500)
   }
 }
 
-// 3️⃣ Logs by Staff
+
 export const getLogsByStaff = async (filters: AnalyticsFilters = {}) => {
   try {
     let query: FirebaseFirestore.Query = db.collection("dailyLogs")
@@ -228,7 +234,7 @@ export const getLogsByStaff = async (filters: AnalyticsFilters = {}) => {
   }
 }
 
-// 4️⃣ Logs by Center
+
 export const getLogsByCenter = async (filters: AnalyticsFilters = {}) => {
   try {
     let query: FirebaseFirestore.Query = db.collection("dailyLogs")
@@ -242,20 +248,20 @@ export const getLogsByCenter = async (filters: AnalyticsFilters = {}) => {
       if (centerName) counts[centerName] = (counts[centerName] || 0) + 1
     })
 
-    return counts // e.g., { "Downtown Center": 12, "Uptown Center": 8 }
+    return counts
   } catch (err: any) {
     throw new ServiceError("Failed to fetch logs by center", 500)
   }
 }
 
-// 5️⃣ Logs over Time (daily count)
+
 export const getLogsOverTime = async (filters: AnalyticsFilters = {}) => {
   try {
     let query: FirebaseFirestore.Query = db.collection("dailyLogs")
     query = applyFilters(query, filters)
 
     const snapshot = await query.get()
-    const counts: Record<string, number> = {} // key: date string
+    const counts: Record<string, number> = {} 
 
     snapshot.docs.forEach((doc) => {
       const ts = doc.data().timestamp
@@ -271,7 +277,7 @@ export const getLogsOverTime = async (filters: AnalyticsFilters = {}) => {
   }
 }
 
-// 6️⃣ Mood Trends (stacked by mood detail)
+
 export const getMoodTrends = async (filters: AnalyticsFilters = {}) => {
   try {
     filters.type = "Mood" // only mood logs
@@ -279,7 +285,7 @@ export const getMoodTrends = async (filters: AnalyticsFilters = {}) => {
     query = applyFilters(query, filters)
 
     const snapshot = await query.get()
-    const moodCounts: Record<string, number> = {} // e.g., happy, sad, neutral
+    const moodCounts: Record<string, number> = {} 
 
     snapshot.docs.forEach((doc) => {
       const mood = doc.data().details || "Unknown"
@@ -292,15 +298,15 @@ export const getMoodTrends = async (filters: AnalyticsFilters = {}) => {
   }
 }
 
-// 7️⃣ Diaper/Nap Patterns
+
 export const getDiaperNapPatterns = async (filters: AnalyticsFilters = {}) => {
   try {
-    filters.type = undefined // we can filter for both "Diaper" and "Nap"
+    filters.type = undefined 
     let query: FirebaseFirestore.Query = db.collection("dailyLogs")
     query = applyFilters(query, filters)
 
     const snapshot = await query.get()
-    const patterns: Record<string, Record<string, number>> = {} // childName -> { type -> count }
+    const patterns: Record<string, Record<string, number>> = {}
 
     snapshot.docs.forEach((doc) => {
       const type = doc.data().type
@@ -317,5 +323,51 @@ export const getDiaperNapPatterns = async (filters: AnalyticsFilters = {}) => {
     return patterns
   } catch (err: any) {
     throw new ServiceError("Failed to fetch diaper/nap patterns", 500)
+  }
+}
+
+export const getRecentLogsService = async () => {
+  try {
+    const snapshot = await db
+      .collection("dailyLogs")
+      .orderBy("timestamp", "desc")
+      .limit(5)
+      .get()
+
+    const logs = []
+
+    for (const doc of snapshot.docs) {
+      const data = doc.data()
+
+      // Fetch child
+      const childRef = await db.collection("children").doc(data.childId).get()
+      const childData = childRef.exists ? childRef.data() : null
+
+      // Fetch staff
+      const staffRef = await db
+        .collection("staffMembers")
+        .doc(data.staffId)
+        .get()
+      const staffData = staffRef.exists ? staffRef.data() : null
+
+      logs.push({
+        id: doc.id,
+        childName: childData
+          ? `${childData.firstName} ${childData.lastName}`
+          : "Unknown",
+        staffName: staffData
+          ? `${staffData.firstName} ${staffData.lastName}`
+          : "Unknown",
+        type: data.type,
+        details: data.details,
+        timestamp: data.timestamp.toDate
+          ? data.timestamp.toDate()
+          : data.timestamp,
+      })
+    }
+
+    return logs
+  } catch (err: any) {
+    throw new ServiceError("Failed to fetch recent daily logs", 500)
   }
 }

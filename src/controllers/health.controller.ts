@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express"
 import * as healthAnalyticsService from "../services/health.service"
 import { ServiceError } from "../schemas/class"
 
-// Create a new health record entry
+
 export const createHealthEntryController = async (
   req: Request,
   res: Response,
@@ -17,7 +17,7 @@ export const createHealthEntryController = async (
   }
 }
 
-// Get all health records
+
 export const getAllHealthRecordsController = async (
   req: Request,
   res: Response,
@@ -31,7 +31,7 @@ export const getAllHealthRecordsController = async (
   }
 }
 
-// Get health records by childId
+
 export const getHealthRecordsByChildIdController = async (
   req: Request,
   res: Response,
@@ -46,7 +46,7 @@ export const getHealthRecordsByChildIdController = async (
   }
 }
 
-// Get health records by staffId
+
 export const getHealthRecordsByStaffIdController = async (
   req: Request,
   res: Response,
@@ -61,7 +61,7 @@ export const getHealthRecordsByStaffIdController = async (
   }
 }
 
-// Get health records by centerId
+
 export const getHealthRecordsByCenterIdController = async (
   req: Request,
   res: Response,
@@ -93,7 +93,7 @@ const parseFilters = (req: Request) => {
   }
 }
 
-// 1️⃣ Incidents vs Medication
+
 export const getIncidentVsMedication = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -104,7 +104,7 @@ export const getIncidentVsMedication = async (req: Request, res: Response) => {
   }
 }
 
-// 2️⃣ Incidents by Severity
+
 export const getIncidentsBySeverity = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -115,7 +115,7 @@ export const getIncidentsBySeverity = async (req: Request, res: Response) => {
   }
 }
 
-// 3️⃣ Incidents by Child
+
 export const getIncidentsByChild = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -126,7 +126,7 @@ export const getIncidentsByChild = async (req: Request, res: Response) => {
   }
 }
 
-// 4️⃣ Medication by Child
+
 export const getMedicationByChild = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -137,7 +137,7 @@ export const getMedicationByChild = async (req: Request, res: Response) => {
   }
 }
 
-// 5️⃣ Records by Staff
+
 export const getRecordsByStaff = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -148,7 +148,7 @@ export const getRecordsByStaff = async (req: Request, res: Response) => {
   }
 }
 
-// 6️⃣ Records by Center
+
 export const getRecordsByCenter = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -159,7 +159,7 @@ export const getRecordsByCenter = async (req: Request, res: Response) => {
   }
 }
 
-// 7️⃣ Records Over Time
+
 export const getRecordsOverTime = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -170,7 +170,7 @@ export const getRecordsOverTime = async (req: Request, res: Response) => {
   }
 }
 
-// 8️⃣ Incident Type Breakdown
+
 export const getIncidentTypeBreakdown = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -181,7 +181,7 @@ export const getIncidentTypeBreakdown = async (req: Request, res: Response) => {
   }
 }
 
-// 9️⃣ Action Taken Summary
+
 export const getActionTakenSummary = async (req: Request, res: Response) => {
   try {
     const filters = parseFilters(req)
@@ -189,5 +189,38 @@ export const getActionTakenSummary = async (req: Request, res: Response) => {
     res.json(data)
   } catch (err: any) {
     res.status(err.statusCode || 500).json({ error: err.message })
+  }
+}
+
+export const getIncidentByClass = async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate, centerId } = req.query
+    console.log("snap", startDate)
+    console.log("snap", endDate)
+    // Validate required filters
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ error: "startDate and endDate are required" })
+    }
+
+    const filters = {
+      startDate: new Date(startDate as string),
+      endDate: new Date(endDate as string),
+    }
+
+    const data = await healthAnalyticsService.getIncidentsByClass(filters)
+    res.json(data)
+  } catch (err: any) {
+    res.status(err.statusCode || 500).json({ error: err.message })
+  }
+}
+
+export const getRecentHealthRecords = async (req: Request, res: Response) => {
+  try {
+    const data = await healthAnalyticsService.getRecentHealthRecordsService()
+    res.json(data)
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
   }
 }

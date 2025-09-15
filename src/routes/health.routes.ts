@@ -14,6 +14,8 @@ import {
   getRecordsByCenter,
   getRecordsByStaff,
   getRecordsOverTime,
+  getIncidentByClass,
+  getRecentHealthRecords,
 } from "../controllers/health.controller"
 
 const healthReportRoute = Router()
@@ -21,16 +23,12 @@ const healthReportRoute = Router()
 // Create a new health record
 healthReportRoute.post("/", createHealthEntryController)
 
-// Get all health records
 healthReportRoute.get("/", getAllHealthRecordsController)
 
-// Get records by childId
 healthReportRoute.get("/child/:childId", getHealthRecordsByChildIdController)
 
-// Get records by staffId
 healthReportRoute.get("/staff/:staffId", getHealthRecordsByStaffIdController)
 
-// Get records by centerId
 healthReportRoute.get("/center/:centerId", getHealthRecordsByCenterIdController)
 
 // for statics purpose
@@ -43,5 +41,7 @@ healthReportRoute.get("/records-by-center", getRecordsByCenter)
 healthReportRoute.get("/records-over-time", getRecordsOverTime)
 healthReportRoute.get("/incident-type-breakdown", getIncidentTypeBreakdown)
 healthReportRoute.get("/action-taken-summary", getActionTakenSummary)
+healthReportRoute.get("/incident-by-class", getIncidentByClass)
+healthReportRoute.get("/recent", getRecentHealthRecords)
 
 export default healthReportRoute
